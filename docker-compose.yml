@@ -1,0 +1,37 @@
+version: "3.8"
+services:
+  cockroachdb:
+    image: cockroachdb/cockroach:latest-v23.1 # o la versión que prefieras
+    ports:
+      - "26257:26257" # Puerto para la conexión SQL
+      - "8080:8080"   # Puerto para la UI de CockroachDB
+    volumes:
+      - cockroachdb-data:/cockroach/cockroach-data
+    command: start-single-node --insecure # Para un solo nodo en desarrollo
+    environment:
+      COCKROACH_ACCEPT_TERMS: true # Acepta los términos de CockroachDB
+    networks:
+      - app_net
+
+  web:
+    image: stock-analysis:latest
+    build:
+      context: ./
+    ports:
+      - "3000:3000"
+    platform: linux/amd64
+    depends_on:
+      cockroachdb:
+        condition: service_started
+    environment:
+      API_URL: "https://8j5baasof2.execute-api.us-west-2.amazonaws.com/production/swechallenge/list"
+      API_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdHRlbXB0cyI6NiwiZW1haWwiOiJkdXZhbmhlcmZpQGdtYWlsLmNvbSIsImV4cCI6MTc0MTY0MTAwMiwiaWQiOiIwIiwicGFzc3dvcmQiOiInIG9yICcxJz0nMSJ9.1hL8K2kGh6_4vECNX2Vs1IWDjQE9vEvAmTjjGEgIjr4"
+      DATABASE_URL: "postgresql://root@cockroachdb:26257/defaultdb?sslmode=disable"
+    networks:
+      - app_net
+volumes:
+  cockroachdb-data:
+
+networks:
+  app_net:
+    driver: bridge

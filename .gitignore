@@ -1,0 +1,5 @@
+.env*
+/ui/dist
+/ui/node_modules
+.terraform
+.idea
